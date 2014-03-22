@@ -9,6 +9,8 @@ mvstatustemp2="/tmp/mvstatustemp2"
 mvstatustemp3="/tmp/mvstatustemp3"
 mvstatuspercent="/tmp/mvstatuspercent"
 mvstatuspercentr="/tmp/mvstatuspercentr"
+hostlist="/etc/VirtStat/servers"
+mailist="/etc/VirtStat/mail"
 totptemp="/tmp/mvtotptemp"
 fecha=`date -I`
 memMVt=0
@@ -108,11 +110,24 @@ case $1 in
         screen)
                 cat $mvstatus;;
         mail)
-                cat $mvstatus | mail -s " Estado de las virtuales $fecha " sistemas@cica.es ;;
-        *)
+                mail=`cat $mailist`;;
+                cat $mvstatus | mail -s " Estado de las virtuales $fecha " $mail ;;
+	copy)
+		numhosts=`cat $mailist |wc -l`
+		if [ $nummail -eq 1 ] then;
+					mail=`cat $mailist`;;
+			                cat $mvstatus | mail -s " Estado de las virtuales $fecha " $mail ;;
+		elif [ $nummail -gt 1 ] then;
+			for $line in $(cat $mailist) do
+                                        cat $mvstatus | mail -s " Estado de las virtuales $fecha " $line ;;
+        		done ;;
+		fi ;;
+
+	*)
                 echo "PARAMETROS INCORRECTOS
 USE screen/mail " > $mvstatus
-                cat $mvstatus | mail -s " Fallo ejecucion script virtuales $fecha " sistemas@cica.es            ;;
+                mail=`cat $mailist`;;
+                cat $mvstatus | mail -s " Fallo ejecucion script virtuales $fecha " $mail            ;;
 esac
 
 rm $mvstatus
