@@ -2,7 +2,6 @@
 
 #### DECLARACIÓN DE CONSTANTES #######
 mvstatus="/tmp/mvstatus"
-listaserv="/opt/scripts/VirtStat/servers"
 mvr="/tmp/mvr"
 mvstatustemp="/tmp/mvstatustemp"
 mvstatustemp2="/tmp/mvstatustemp2"
@@ -70,7 +69,7 @@ echo " " >> $mvstatus
 
 #### LISTADO DE LAS MÁQUINAS DE LA GRANJA #####
 #Se listan las máquinas de las granja añadidas en el fichero /opt/scripts/VirtStat/servers
-for line in $(cat $listaserv);
+for line in $(cat $hostlist);
         do
 		rm -f $mvstatustemp
 		touch $mvstatustemp
