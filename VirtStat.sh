@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#### DECLARACIÓN DE CONSTANTES #######
+#### DECLARATION OF VARIABLES #######
 mvstatus="/tmp/mvstatus"
 mvr="/tmp/mvr"
 mvstatustemp="/tmp/mvstatustemp"
@@ -15,7 +15,7 @@ fecha=`date -I`
 memMVt=0
 host=`hostname`
 
-###### DECLARACION DE FUNCIONES ######
+###### DECLARATION OF FUNCTIONS ######
 
 function memMV(){
         virsh list |grep -v Id |grep -v "\--" |awk -F" " '{print $2}'| sed '$d' >> $mvr
@@ -31,13 +31,13 @@ function memMV(){
 }
 
 
-######## COMIENZO DEL SCRIPT #########
+######## START SCRIPT #########
 echo "============================================================================" > $mvstatus
 echo "============== ESTADO DE LAS MAQUINAS VIRTUALES $fecha =================" >> $mvstatus
 echo "============================================================================" >> $mvstatus
 echo " " >> $mvstatus
 
-##### LISTADO DE LA MÁQUINA LOCAL ########
+##### LOCALHOST LIST ########
 rm -f $mvstatustemp
 touch $mvstatustemp
 echo " ---======= $host =======---        " >> $mvstatus
@@ -67,8 +67,8 @@ echo -e "\n ------ MEMORIA $host ------" >> $mvstatus
 free -m |grep -i total | awk -F" " '{printf "\t"$1"\t" $2"\t" $3"\n"}' >> $mvstatus && free -m |grep -i mem | awk -F" " '{printf $1"\t" $2"\t" $3"\t" $4"\n"}' >> $mvstatus && free -m |grep -i swap | awk -F" " '{printf $1"\t" $2"\t" $3"\t" $4"\n"}' >> $mvstatus
 echo " " >> $mvstatus
 
-#### LISTADO DE LAS MÁQUINAS DE LA GRANJA #####
-#Se listan las máquinas de las granja añadidas en el fichero /opt/scripts/VirtStat/servers
+#### REMOTE VIRTUALIZATION HOSTS LIST #####
+#In this part, VirtStat, list the servers in /etc/VirtStat/servers
 for line in $(cat $hostlist);
         do
 		rm -f $mvstatustemp
@@ -104,14 +104,11 @@ for line in $(cat $hostlist);
 		rm -f $mvstatustemp $mvstatustemp2 $mvstatustemp3 $mvstatuspercent $mvstatuspercentr
 	 done
 
-####### VALIDACION DE LOS PARAMETROS DE ENTRADA DEL COMANDO
+####### PARAMETER VALIDATION ########
 case $1 in
         screen)
                 cat $mvstatus;;
         mail)
-                mail=`cat $mailist`;;
-                cat $mvstatus | mail -s " Estado de las virtuales $fecha " $mail ;;
-	copy)
 		numhosts=`cat $mailist |wc -l`
 		if [ $nummail -eq 1 ] then;
 					mail=`cat $mailist`;;
@@ -121,6 +118,19 @@ case $1 in
                                         cat $mvstatus | mail -s " Estado de las virtuales $fecha " $line ;;
         		done ;;
 		fi ;;
+	copy)
+## First, found if is a file or a directory
+	if [ -d $1 ]; then
+			for $line in $(cat $hostlist) do
+				scp -pr $1 $line:$1 ;;
+				echo "SUCCESS COPY ON $line" ;;
+			done
+	else
+			for $line in $(cat $hostlist) do
+				scp  $1 $line:$1 ;;
+				echo "SUCCESS COPY ON $line" ;;
+			done
+	fi ;;
 
 	*)
                 echo "PARAMETROS INCORRECTOS
