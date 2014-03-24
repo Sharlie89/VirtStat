@@ -1,16 +1,16 @@
 #!/bin/bash
 
 #### DECLARATION OF VARIABLES #######
-mvstatus="/tmp/mvstatus"
-mvr="/tmp/mvr"
-mvstatustemp="/tmp/mvstatustemp"
-mvstatustemp2="/tmp/mvstatustemp2"
-mvstatustemp3="/tmp/mvstatustemp3"
-mvstatuspercent="/tmp/mvstatuspercent"
-mvstatuspercentr="/tmp/mvstatuspercentr"
+mvstatus=`mktemp /tmp/mvstatustemp.XXXX`
+mvr=`mktemp /tmp/mvr.XXXX`
+mvstatustemp=`mktemp /tmp/mvstatustemp.XXXX`
+mvstatustemp2=`mktemp /tmp/mvstatustemp.XXXX`
+mvstatustemp3=`mktemp /tmp/mvstatustemp.XXXX`
+mvstatuspercent=`mktemp /tmp/mvstatustemp.XXXX`
+mvstatuspercentr=`/tmp/mvstatustemp.XXXX`
 hostlist="/etc/VirtStat/servers"
 mailist="/etc/VirtStat/mail"
-totptemp="/tmp/mvtotptemp"
+totptemp=`mktemp /tmp/mvstatustemp`
 fecha=`date -I`
 memMVt=0
 host=`hostname`
@@ -27,7 +27,7 @@ function memMV(){
                   echo "$line:$memMVmb" >> $mvstatustemp
                 done < $mvr
         echo "TOTAL ASSIGNED: $memMVt MB" >> $mvstatustemp
-        rm -f $mvr
+        unlink $mvr
 }
 
 
@@ -38,7 +38,7 @@ echo "==========================================================================
 echo " " >> $mvstatus
 
 ##### LOCALHOST LIST ########
-rm -f $mvstatustemp
+unlink $mvstatustemp
 touch $mvstatustemp
 echo " ---======= $host =======---        " >> $mvstatus
 virsh list |grep -v Id |grep -v "\----------------------------------------------------"| awk -F" " '{print $2}'| sed '$d' >> $mvstatustemp2
@@ -49,10 +49,9 @@ echo -e " Id    Name                           State     Memory \t\t %Use \t\t%C
 echo "-----------------------------------------------------------------------------------------" >> $mvstatus
 for line in $(cat $mvstatustemp2);
 	do
-		rm -f $mvstatuspercent
+		unlink $mvstatuspercent
 		memtemp=`cat $mvstatustemp |grep -w $line |awk -F":" '{print $2}'`
 		guestemp=`cat $mvstatustemp3 |grep -w $line`
-#		echo $guestemp
 		smem -p -P "$line.monitor" |grep -i kvm |awk -F" " '{print $11}' >> $mvstatuspercent
 		percent=`cat $mvstatuspercent`
 		cpup=`ps aux |grep "\-name $line" |grep -v "grep"|tail -n1 |awk -F" " '{print $3}'`
@@ -62,7 +61,9 @@ echo " " >> $mvstatus
 totp=`smem -p -t -P "kvm"|tail -n1 |awk -F" " '{print $6}'`
 cat $mvstatustemp |grep "TOTAL ASSIGNED:" >> $mvstatus
 echo "TOTAL % IN USE OF ASSIGNED MEMORY: $totp " >> $mvstatus
-rm -f $mvstatustemp $mvstatustemp2 $mvstatustemp3
+unlink $mvstatustemp
+unlink $mvstatustemp2
+unlink $mvstatustemp3
 echo -e "\n ------ MEMORIA $host ------" >> $mvstatus
 free -m |grep -i total | awk -F" " '{printf "\t"$1"\t" $2"\t" $3"\n"}' >> $mvstatus && free -m |grep -i mem | awk -F" " '{printf $1"\t" $2"\t" $3"\t" $4"\n"}' >> $mvstatus && free -m |grep -i swap | awk -F" " '{printf $1"\t" $2"\t" $3"\t" $4"\n"}' >> $mvstatus
 echo " " >> $mvstatus
@@ -71,7 +72,7 @@ echo " " >> $mvstatus
 #In this part, VirtStat, list the servers in /etc/VirtStat/servers
 for line in $(cat $hostlist);
         do
-		rm -f $mvstatustemp
+		unlink $mvstatustemp
 		touch $mvstatustemp
                 echo "---======= $line =======---          " >> $mvstatus
 		ssh $line "virsh list |grep -v Id "|grep -v "\---"| awk -F" " '{print $2}'| sed '$d' >> $mvstatustemp2
@@ -81,7 +82,8 @@ for line in $(cat $hostlist);
 		echo "-----------------------------------------------------------------------------------------" >> $mvstatus
 		for line2 in $(cat $mvstatustemp2);
 	       		do
-				rm -f $mvstatuspercentr $mvstatuspercent
+				unlink $mvstatuspercentr
+				unlink $mvstatuspercent
                 		memtemp=`ssh $line "cat $mvstatustemp |grep -w $line2" |awk -F":" '{print $2}'`
 	                	guestemp=`cat $mvstatustemp3 |grep -w $line2`
                 		ssh $line "smem -p -P "$line2.monitor" |grep -i kvm" >> $mvstatuspercentr
@@ -93,7 +95,7 @@ for line in $(cat $hostlist);
         		done
 		echo " " >> $mvstatus
 		ssh $line "cat $mvstatustemp" |grep "TOTAL ASSIGNED:" >> $mvstatus
-		ssh $line "rm -f $mvstatustemp"
+		ssh $line "unlink $mvstatustemp"
 		ssh $line "smem -p -t -P 'kvm'" >> $totptemp
 		totp=`cat $totptemp |tail -n1 |awk -F" " '{print $6}'`
 		echo "TOTAL % IN USE OF ASSIGNED MEMORY: $totp " >> $mvstatus
@@ -101,7 +103,11 @@ for line in $(cat $hostlist);
                 echo " ------ MEMORIA $line ------" >> $mvstatus
                 ssh $line "/opt/scripts/VirtStat/listar.sh" >> $mvstatus
                 echo " " >> $mvstatus
-		rm -f $mvstatustemp $mvstatustemp2 $mvstatustemp3 $mvstatuspercent $mvstatuspercentr
+		unlink $mvstatustemp
+		unlink $mvstatustemp2
+		unlink $mvstatustemp3
+		unlink $mvstatuspercent
+		unlink $mvstatuspercentr
 	 done
 
 ####### PARAMETER VALIDATION ########
@@ -139,4 +145,4 @@ USE screen/mail " > $mvstatus
                 cat $mvstatus | mail -s " Fallo ejecucion script virtuales $fecha " $mail            ;;
 esac
 
-rm $mvstatus
+unlink $mvstatus
