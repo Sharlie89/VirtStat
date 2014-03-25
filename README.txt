@@ -16,7 +16,7 @@ As a command:
 	
 	screen) Like mail but prints in screen the information. USAGE: VirStat screen
 
-	copy) Copy a file or directory in the same path on all other virtualization hosts. USAGE: VirtStat copy PATH
+	copy) Copy a file or directory in the same path on all other virtualization hosts. USAGE: VirtStat copy PATH DES-PATH
 
 	exec) Execute a command in head host and remote hosts. USAGE: VirtStat exec "command". EX: VirtStat exec "ls /home"
 
