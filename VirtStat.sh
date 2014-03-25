@@ -143,7 +143,22 @@ case $1 in
 				done
 		fi ;;
 
-	*)
+        exec)
+                command=`echo $2 |sed 's/"/"/'`
+                host=`hostname`
+                echo "===================="
+                echo "==== $host ====="
+                echo "===================="
+                $command
+                for host in $(cat $hostlist)
+                        do
+                               echo "===================="
+                               echo "==== $host ====="
+                               echo "===================="
+                               ssh $host "$command"
+                        done ;;
+
+		*)
                 echo "PARAMETROS INCORRECTOS
 USE screen/mail " > $mvstatus
                 mail=`cat $mailist`
