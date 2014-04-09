@@ -132,13 +132,13 @@ case $1 in
 			for copyhost in $(cat $hostlist)
 				do
 					scp -pr $2 $copyhost:$3
-					echo "SUCCESS COPY ON $line"
+					echo "SUCCESS COPY ON $copyhost"
 				done
 		else
 			for copyhost in $(cat $hostlist)
 				do
 					scp  $2 $copyhost:$3
-					echo "SUCCESS COPY ON $line"
+					echo "SUCCESS COPY ON $copyhost"
 				done
 		fi ;;
 
